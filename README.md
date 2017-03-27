@@ -1,2 +1,2 @@
-# TwitterDataAnalysis
-Develop a system to analyze Twitter’s data using MapReduce
+# TwitterAnalysis
+System to analyze Twitter’s data using MapReduce
