@@ -142,18 +142,14 @@ public class TweetAnalyzer {
                 sum += value.get();
 
             if (times.size() < 10) {
-                System.out.println("Before: " + times.toString());
                 times.put(key.get(), sum);
-                System.out.println("After: " + times.toString());
             }
             else {
                 java.util.Map.Entry minEntry = getSmallestEntry();
                 Integer minValue = (Integer) minEntry.getValue();
                 if (sum > minValue) {
-                    System.out.println("Before: " + times.toString());
                     times.remove(minEntry.getKey());
                     times.put(key.get(), sum);
-                    System.out.println("After: " + times.toString());
                 }
             }
             context.write(key, new IntWritable(sum));
