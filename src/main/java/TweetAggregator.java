@@ -5,41 +5,47 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class Aggregator {
-    private final static int MAX_QUANTITY = 50;
-    private final static String OUTPUT = "src/data/input/tweets-small.json";
+public class TweetAggregator {
+    private final static String OUTPUT = "src/data/input/tweets-large.json";
 
     private static TwitterStream twitterStream;
 
     /*
-     * Opens the Twitter public stream and listens for incoming tweets.
-     * Tweets are written to a file in JSON format, to be processed later.
-     * Once the specified number of tweets has been reached, the listener
-     * is removed and the stream is closed.
+     *
      */
     public static void main(String[] args) throws TwitterException, IOException {
         FileWriter fw = new FileWriter(OUTPUT, true);
         BufferedWriter bw = new BufferedWriter(fw);
 
-//        for (int i = 0; i < 125; i++) {
-//        }
-
         twitterStream = new TwitterStreamFactory().getInstance();
         twitterStream.addListener(new StatusListener() {
+            long startTime = System.currentTimeMillis();
+            long endTime = startTime + 86400000;
+            long timeRemaining;
             int tweetCount = 0;
             @Override
             public void onStatus(Status status) {
-                if (tweetCount < MAX_QUANTITY) {
+                if (System.currentTimeMillis() < endTime) {
+
                     PrintWriter out = new PrintWriter(bw);
                     out.println(TwitterObjectFactory.getRawJSON(status));
-                    if (++tweetCount % 1000 == 0)
-                        System.out.print("#");
+                    tweetCount++;
+
+                    timeRemaining = (endTime - System.currentTimeMillis());
+                    if (timeRemaining % 3600000 == 0) {
+                        System.out.print("Hours remaining: " + timeRemaining / 3600000);
+                        System.out.println("Tweets captured: " + tweetCount);
+                    }
+
+//                  Wait half a second between captures to reduce size of file while maintaining even distribution
+                    long startWait = System.currentTimeMillis();
+                    while (System.currentTimeMillis() < startWait + 499) {}
                 }
                 else { // Collection finished, close stream.
                     try { bw.flush(); }
                     catch (IOException e) { e.printStackTrace(); }
-                    System.out.println(tweetCount + " tweets saved. ");
-                    Aggregator.stop();
+                    System.out.println(tweetCount + " total tweets saved. ");
+                    TweetAggregator.stop();
                 }
             }
             /* Unimplemented Interface Methods */
@@ -59,6 +65,8 @@ public class Aggregator {
         });
         // Initiate stream, filtering for tweets in English only
         twitterStream.sample("en");
+        System.out.println("Starting at time: " + System.currentTimeMillis());
+        System.out.println("Hours remaining: 24");
     }
 
     private static void stop() {
